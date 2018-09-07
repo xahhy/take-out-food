@@ -1,8 +1,8 @@
-const {getItemsMap, bestCharge, getItemsInfo, getPromotion} = require('../src/best-charge');
+const {getItemsMap, bestCharge, getItemsInfo, getPromotion, getTotal} = require('../src/best-charge');
 
 describe('Take out food', function () {
 
-  xit('should generate best charge when best is 指定菜品半价', function () {
+  it('should generate best charge when best is 指定菜品半价', function () {
     let inputs = ["ITEM0001 x 1", "ITEM0013 x 2", "ITEM0022 x 1"];
     let summary = bestCharge(inputs).trim();
     let expected = `
@@ -19,7 +19,7 @@ describe('Take out food', function () {
     expect(summary).toEqual(expected)
   });
 
-  xit('should generate best charge when best is 满30减6元', function () {
+  it('should generate best charge when best is 满30减6元', function () {
     let inputs = ["ITEM0013 x 4", "ITEM0022 x 1"];
     let summary = bestCharge(inputs).trim();
     let expected = `
@@ -35,7 +35,7 @@ describe('Take out food', function () {
     expect(summary).toEqual(expected)
   });
 
-  xit('should generate best charge when no promotion can be used', function () {
+  it('should generate best charge when no promotion can be used', function () {
     let inputs = ["ITEM0013 x 4"];
     let summary = bestCharge(inputs).trim();
     let expected = `
@@ -51,12 +51,12 @@ describe('Take out food', function () {
 describe('Take out food Model', function () {
   it('should get one food code numbers model', function () {
     let items = ["ITEM0013 x 4"];
-    let expectItems = {'ITEM0013': '4'};
+    let expectItems = {'ITEM0013': 4};
     expect(getItemsMap(items)).toEqual(expectItems);
   });
   it('should get multiple food codes numbers model', function () {
     let items = ["ITEM0013 x 4", "ITEM0030 x 6"];
-    let expectItems = {ITEM0013: '4', ITEM0030: '6'};
+    let expectItems = {ITEM0013: 4, ITEM0030: 6};
     expect(getItemsMap(items)).toEqual(expectItems);
   });
   it('should get food information model', function () {
@@ -66,7 +66,8 @@ describe('Take out food Model', function () {
         id: 'ITEM0013',
         name: '肉夹馍',
         price: 6.00,
-        number: '4'
+        number: 4,
+        subTotal: 24
       }
     ];
     expect(getItemsInfo(getItemsMap(items))).toEqual(expectItems);
@@ -83,9 +84,34 @@ describe('Take out food Model', function () {
     let expectPromotion = {
       type: '指定菜品半价',
       items: ['ITEM0001', 'ITEM0022'],
-      promotionAmount: '45.00'
+      promotionAmount: 45
     };
     let promotion = getPromotion(getItemsInfo(getItemsMap(items)));
     expect(promotion).toEqual(expectPromotion);
   });
+
+  it('should return total price model when use promotion2', function () {
+    let items = ["ITEM0001 x 5"];
+    let expectTotal = {
+      total: 45
+    };
+    let itemsMap = getItemsMap(items);//Parse input and generate item map like: {ITEM0:'1', ITEM2:'2'}
+    let itemsInfo = getItemsInfo(itemsMap);
+    let promotion = getPromotion(itemsInfo);
+    let total = getTotal(itemsInfo, promotion);
+    expect(total).toEqual(expectTotal);
+  });
+
+  it('should return total price model when use promotion1', function () {
+    let items = ["ITEM0013 x 5"];
+    let expectTotal = {
+      total: 24
+    };
+    let itemsMap = getItemsMap(items);//Parse input and generate item map like: {ITEM0:'1', ITEM2:'2'}
+    let itemsInfo = getItemsInfo(itemsMap);
+    let promotion = getPromotion(itemsInfo);
+    let total = getTotal(itemsInfo, promotion);
+    expect(total).toEqual(expectTotal);
+  });
+
 });
